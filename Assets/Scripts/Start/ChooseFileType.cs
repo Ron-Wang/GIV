@@ -67,7 +67,7 @@ public class ChooseFileType : MonoBehaviour {
                 }
             }
         }
-        else
+        else if (Toggle3.isOn)
         {
             pathOpen = StandaloneFileBrowser.OpenFilePanel("读取.obj文件", Application.dataPath, "obj", true);
             if (pathOpen.Length > 0)
@@ -80,6 +80,24 @@ public class ChooseFileType : MonoBehaviour {
                     newObject = (GameObject)Instantiate(Resources.Load("Prefabs/CreateContour"));
                     newObject.GetComponent<CreateContour>().inputFiles = pathOpen;
                     newObject.GetComponent<CreateContour>().outputFile = pathSave;
+                    newObject.transform.parent = GetComponent<Transform>();
+                }
+            }
+        }
+        else
+        {
+            pathOpen = StandaloneFileBrowser.OpenFilePanel("读取.vtk文件", Application.dataPath, "vtk", true);
+            if (pathOpen.Length > 0)
+            {
+                pathSave = StandaloneFileBrowser.SaveFilePanel("生成.giv文件", Application.dataPath, "Time_", "giv");
+                if (pathSave != "")
+                {
+                    panelReadFiles.SetActive(false);//启动界面隐藏
+                    panelVar.SetActive(true);//变量选择界面显示
+                    panelGiv.SetActive(true);//可视化界面隐藏
+                    newObject = (GameObject)Instantiate(Resources.Load("Prefabs/CreateFems"));
+                    newObject.GetComponent<CreateFems>().inputFiles = pathOpen;
+                    newObject.GetComponent<CreateFems>().outputFile = pathSave;
                     newObject.transform.parent = GetComponent<Transform>();
                 }
             }

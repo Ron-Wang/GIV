@@ -18,7 +18,7 @@ public class ReadContour : MonoBehaviour {
     int timeNow = 0;
 
     GameObject menuItem1;
-    private GameObject panelMenu,panelColor;
+    private GameObject panelMenu,panelColor,panelArraw;
 
     Color[] colors = new Color[] { Color.white, Color.blue, Color.red, Color.yellow, Color.green };
 
@@ -28,6 +28,8 @@ public class ReadContour : MonoBehaviour {
         panelMenu.SetActive(false);
         panelColor = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelColor");
         panelColor.SetActive(false);
+        panelArraw = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelArraw");
+        panelArraw.SetActive(false);
         timeNum = files.Length;
         menuItem1 = (GameObject)Instantiate(Resources.Load("Prefabs/MenuItem1"));
         menuItem1.GetComponent<MenuItem1>().timeSum = timeNum;

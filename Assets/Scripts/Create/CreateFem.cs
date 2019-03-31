@@ -36,13 +36,7 @@ public class CreateFem : MonoBehaviour {
         panelGiv.SetActive(false);
         timeNum = inputFiles.Length;
         outputFiles = new string[timeNum];
-        if (timeNum == 0)
-        {
-        }
-        else
-        {
-            CreateGivWithoutDomains();
-        }
+        CreateGivWithoutDomains();
     }
 
     public void CreateGivWithoutDomains()

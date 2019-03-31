@@ -339,7 +339,7 @@ public class ReadFem : MonoBehaviour {
                         for (int j = 0; j < meshVNum[i]; ++j)
                         {
                             preArraw[i][j].GetComponent<Transform>().rotation = q * quats[i][j];
-                            preArraw[i][j].GetComponent<Transform>().localScale = new Vector3(1, 1, 1) * 0.3f * values[i][j];
+                            preArraw[i][j].GetComponent<Transform>().localScale = new Vector3(1, 1, 1) * 0.1f * values[i][j];
                         }
                     }
                 }
@@ -387,7 +387,6 @@ public class ReadFem : MonoBehaviour {
                         for (int k = 0; k < meshVNum[j]; k++)
                         {
                             Avertices[j][k] *= scale;
-                            //Debug.Log(Avertices[j][k]);
                             Avertices[j][k] += vertices[j][k];
                         }
                         Mesh mesh = pre[j].GetComponent<MeshFilter>().mesh;
