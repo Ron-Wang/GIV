@@ -30,6 +30,7 @@ public class CreateContour : MonoBehaviour {
     public void CreateGivByObj()//obj文件的读取、归一化、写入giv文件
     {
         List<string> listObj;
+        float Max = 0, Min = 0;
         float xMax = 0, xMin = 0,
             yMax = 0, yMin = 0,
             zMax = 0, zMin = 0;
@@ -83,12 +84,46 @@ public class CreateContour : MonoBehaviour {
                 }
                 if (lineToArray[0] == "f")
                 {
+                    
+                    listTri.Add(int.Parse(lineToArray[1].Split('/')[0]) - 1);
+                    listTri.Add(int.Parse(lineToArray[3].Split('/')[0]) - 1);
+                    listTri.Add(int.Parse(lineToArray[2].Split('/')[0]) - 1);
+                    /*                    
                     listTri.Add(int.Parse(lineToArray[1]) - 1);
                     listTri.Add(int.Parse(lineToArray[3]) - 1);
                     listTri.Add(int.Parse(lineToArray[2]) - 1);
+                    */
                     ++triNum;
                 }
             }
+
+            if (xMax - xMin > yMax - yMin)
+            {
+                if (xMax - xMin > zMax - zMin)
+                {
+                    Max = xMax;
+                    Min = xMin;
+                }
+                else
+                {
+                    Max = zMax;
+                    Min = zMin;
+                }
+            }
+            else
+            {
+                if (yMax - yMin > zMax - zMin)
+                {
+                    Max = yMax;
+                    Min = yMin;
+                }
+                else
+                {
+                    Max = zMax;
+                    Min = zMin;
+                }
+            }
+
             float[] points = listVer.ToArray();
             int[] triangles = listTri.ToArray();
             Vector3[] vertices = new Vector3[verNum];
@@ -96,9 +131,9 @@ public class CreateContour : MonoBehaviour {
                 minVertice = new Vector3(xMin, yMin, zMin);
             for (int iVer = 0; iVer < verNum; ++iVer)//节点归一化
             {
-                vertices[iVer] = new Vector3(10 * (points[3 * iVer] - xMin) / (xMax - xMin) - 5,
-                    5 - 10 * (points[3 * iVer + 1] - yMin) / (yMax - yMin),
-                    10 * (points[3 * iVer + 2] - zMin) / (zMax - zMin) - 5);
+                vertices[iVer] = new Vector3(10 * (points[3 * iVer] - xMin) / (Max - Min) - 5,
+                    5 - 10 * (points[3 * iVer + 1] - yMin) / (Max - Min),
+                    10 * (points[3 * iVer + 2] - zMin) / (Max - Min) - 5);
             }
             //60000节点的判断、分片
             int meshNum, maxVerNum = 60000;

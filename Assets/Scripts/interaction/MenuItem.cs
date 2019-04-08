@@ -147,7 +147,7 @@ public class MenuItem : MonoBehaviour {
                 timeNow++;
                 if (timeNow == timeSum)
                     timeNow = 0;
-                sTime.value = timeNow * 1f / (timeSum - 1);
+                sTime.value = timeNow * 1f / (timeSum - 1 + 1e-16f);
                 textTime.text = "Time:" + timeNow;
             }
         }
@@ -156,7 +156,7 @@ public class MenuItem : MonoBehaviour {
             timeNow = (int)((timeSum - 1)* sTime.value);
             if (timeNow == timeSum)
                 timeNow = 0;
-            sTime.value = timeNow * 1f / (timeSum - 1);
+            sTime.value = timeNow * 1f / (timeSum - 1 + 1e-16f);
             textTime.text = "Time:" + timeNow;
         }
     }

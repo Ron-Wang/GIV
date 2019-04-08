@@ -15,7 +15,7 @@ public class ReadContour : MonoBehaviour {
     float[] value;
     GameObject objects;
     GameObject[] pre = new GameObject[1];
-    int timeNow = 0;
+    int timeNow = -1;
 
     GameObject menuItem1;
     private GameObject panelMenu,panelColor,panelArraw;
