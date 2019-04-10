@@ -394,7 +394,7 @@ public class CreateFem : MonoBehaviour {
                                 vectorsMax[vecIndex] = Mathf.Sqrt(vectors[vecIndex][vectorIndex] * vectors[vecIndex][vectorIndex]
                                     + vectors[vecIndex][vectorIndex - 1] * vectors[vecIndex][vectorIndex - 1]
                                     + vectors[vecIndex][vectorIndex - 2] * vectors[vecIndex][vectorIndex - 2]);
-                                vectorsMin[vecIndex] = scalarsMax[scaIndex];
+                                vectorsMin[vecIndex] = vectorsMax[vecIndex];
                             }
                             else if (vectorIndex % 3 == 2)
                             {
