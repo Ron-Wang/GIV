@@ -15,9 +15,9 @@ public class Btn_Windows : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        btnMin = GameObject.Find("ButtonMin").GetComponent<Button>();
-        btnMax = GameObject.Find("ButtonMax").GetComponent<Button>();
-        btnCancel = GameObject.Find("ButtonCancel").GetComponent<Button>();
+        btnMin = GameObject.Find("PanelTitile/ButtonMin").GetComponent<Button>();
+        btnMax = GameObject.Find("PanelTitile/ButtonMax").GetComponent<Button>();
+        btnCancel = GameObject.Find("PanelTitile/ButtonCancel").GetComponent<Button>();
         btnMin.onClick.AddListener(OnClickMin);
         btnMax.onClick.AddListener(OnClickMax);
         btnCancel.onClick.AddListener(OnClickCancel);

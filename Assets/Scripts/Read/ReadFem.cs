@@ -13,6 +13,12 @@ public class ReadFem : MonoBehaviour {
     int meshNum;
     int scalarNum;
     int vectorNum;
+    bool isVerAdd;
+    int areaNum;
+    float ttt = 0;/// <summary>
+    /// ce shi yong
+    /// </summary>
+
     Vector3 maxVertice, minVectice;
 
     int[] meshVNum;
@@ -28,7 +34,7 @@ public class ReadFem : MonoBehaviour {
     GameObject objects;
     GameObject[] pre;
     int charLength = 30;
-    long sizeMesh, sizeScalar, sizeVector;
+    long[] sizeMesh, sizeScalar, sizeVector,sizeVerAdd;
     int timeNow = 0;
     int scalarNow = 0;
     int vectorNow = 0;
@@ -38,9 +44,11 @@ public class ReadFem : MonoBehaviour {
     GameObject menuItem;
     private GameObject panelMenu1;
     private GameObject panelColor, panelArraw;
-    private Dropdown dScalar, dVector;
+    private Dropdown dArea,dScalar, dVector;
     private Text tMax, tMin,tMax1,tMin1;
-    private bool isVerAdd;
+
+    private int areaNow = 0;
+    private long areaStart = 0;
 
     // Use this for initialization
     void Start() {
@@ -49,7 +57,7 @@ public class ReadFem : MonoBehaviour {
         panelColor = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelColor");
         panelArraw = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelArraw");
         timeNum = files.Length;
-        menuItem = (GameObject)Instantiate(Resources.Load("Prefabs/MenuItem"));
+        menuItem = (GameObject)Instantiate(Resources.Load("Prefabs/Scripts/MenuItem"));
         menuItem.GetComponent<MenuItem>().timeSum = timeNum;
         objects = GameObject.Find("Objects");
         long sizeB = Marshal.SizeOf(typeof(bool));
@@ -60,25 +68,50 @@ public class ReadFem : MonoBehaviour {
         long sizeC = Marshal.SizeOf(typeof(Color));
         long sizeQ = Marshal.SizeOf(typeof(Quaternion));
         long jf = sizeB;
+        string dir = Path.GetDirectoryName(files[0]);
+
         using (MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(files[0]))
         {
             using (MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor())
             {
-
                 accessor.Read<int>(jf, out meshNum);
                 jf += sizeI;
+                accessor.Read<int>(jf, out scalarNum);
+                jf += sizeI;
+                accessor.Read<int>(jf, out vectorNum);
+                jf += sizeI;
+                accessor.Read<bool>(jf, out isVerAdd);
+                jf += sizeB;
+                accessor.Read<int>(jf, out areaNum);
+                jf += sizeI;
+                sizeMesh = new long[areaNum];
+                sizeScalar = new long[areaNum];
+                sizeVector = new long[areaNum];
+                sizeVerAdd = new long[areaNum];
+                Dropdown.OptionData optionData1;
+                dArea = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelMenu/DropdownArea").GetComponent<Dropdown>();
+                dArea.options.Clear();
+                for (int i = 0; i < areaNum; ++i)
+                {
+                    char[] areaName = new char[charLength];
+                    accessor.ReadArray<char>(jf, areaName, 0, charLength);
+                    optionData1 = new Dropdown.OptionData();
+                    optionData1.text = new string(areaName);
+                    dArea.options.Add(optionData1);
+                    jf += sizeChar * charLength;
+                }
+                dArea.captionText.text = dArea.options[0].text;
+
                 pre = new GameObject[meshNum];
                 vertices = new Vector3[meshNum][];
                 Avertices = new Vector3[meshNum][];
                 colors = new Color[meshNum][];
-                accessor.Read<int>(jf, out scalarNum);
-                jf += sizeI;
-                accessor.Read<int>(jf, out vectorNum);
-                jf += sizeI + sizeV * 2;//maxVertice and minVertice
+                jf += sizeV * 2;//maxVertice and minVertice
                 meshVNum = new int[meshNum];
                 meshTNum = new int[meshNum];
-                sizeScalar = sizeChar * charLength + 2 * sizeF;
-                sizeVector = sizeChar * charLength + 2 * sizeF;
+                sizeScalar[0] = sizeChar * charLength + 2 * sizeF;
+                sizeVector[0] = sizeChar * charLength + 2 * sizeF;
+                sizeVerAdd[0] = 0;
                 for (int j = 0; j < meshNum; j++)
                 {
                     accessor.Read<int>(jf, out meshVNum[j]);
@@ -95,7 +128,7 @@ public class ReadFem : MonoBehaviour {
                         accessor.ReadArray<int>(jf, triangles, 0, meshTNum[j]);
                         jf += sizeI * meshTNum[j];
                         //创建预设体，赋予顶点和拓扑 
-                        pre[j] = (GameObject)Instantiate(Resources.Load("Prefabs/PreFem"), 
+                        pre[j] = (GameObject)Instantiate(Resources.Load("Prefabs/Pres/PreFem"), 
                             objects.GetComponent<Transform>().position,
                                 objects.GetComponent<Transform>().rotation);
                         pre[j].transform.parent = GetComponent<Transform>();
@@ -104,11 +137,13 @@ public class ReadFem : MonoBehaviour {
                         mesh.vertices = vertices[j];
                         mesh.triangles = triangles;
                         mesh.RecalculateNormals();
-                        sizeScalar += sizeC * meshVNum[j];
-                        sizeVector += (sizeQ + sizeF) * meshVNum[j];
+                        sizeScalar[0] += sizeC * meshVNum[j];
+                        sizeVector[0] += (sizeQ + sizeF) * meshVNum[j];
+                        if (isVerAdd)
+                            sizeVerAdd[0] += sizeV * meshVNum[j];
                     }
                 }
-                sizeMesh = jf;
+                sizeMesh[0] = jf;
 
                 //读入标量矢量信息，变形与否
                 Dropdown.OptionData optionData;
@@ -116,7 +151,7 @@ public class ReadFem : MonoBehaviour {
                 dScalar.options.Clear();
                 for (int i = 0; i < scalarNum; ++i)
                 {
-                    jf = sizeMesh + sizeScalar * i;
+                    jf = sizeMesh[0] + sizeScalar[0] * i;
                     char[] infoName = new char[charLength];
                     accessor.ReadArray<char>(jf, infoName, 0, charLength);
                     optionData = new Dropdown.OptionData();
@@ -128,7 +163,7 @@ public class ReadFem : MonoBehaviour {
                 dVector.options.Clear();
                 for (int i = 0; i < vectorNum; ++i)
                 {
-                    jf = sizeMesh + sizeScalar * scalarNum + sizeVector * i;
+                    jf = sizeMesh[0] + sizeScalar[0] * scalarNum + sizeVector[0] * i;
                     char[] infoName = new char[charLength];
                     accessor.ReadArray<char>(jf, infoName, 0, charLength);
                     optionData = new Dropdown.OptionData();
@@ -136,16 +171,41 @@ public class ReadFem : MonoBehaviour {
                     dVector.options.Add(optionData);
                 }
                 dVector.captionText.text = dVector.options[0].text;
-                jf = sizeMesh + sizeScalar * scalarNum + sizeVector * vectorNum;
-                accessor.Read<bool>(jf, out isVerAdd);
+                jf = sizeMesh[0] + sizeScalar[0] * scalarNum + sizeVector[0] * vectorNum + sizeVerAdd[0];
+                for (int areaIndex = 1; areaIndex < areaNum; ++areaIndex)
+                {
+                    sizeScalar[areaIndex] = sizeChar * charLength + 2 * sizeF;
+                    sizeVector[areaIndex] = sizeChar * charLength + 2 * sizeF;
+                    sizeVerAdd[areaIndex] = 0;
+                    jf += sizeV * 2;
+                    int[] meshVNumS = new int[meshNum];
+                    int[] meshTNumS = new int[meshNum];
+                    for (int j = 0; j < meshNum; j++)
+                    {
+                        accessor.Read<int>(jf, out meshVNumS[j]);
+                        jf += sizeI;
+                        accessor.Read<int>(jf, out meshTNumS[j]);
+                        jf += sizeI;
+                        jf += sizeV * meshVNumS[j] + sizeI * meshTNumS[j];
+                        sizeScalar[areaIndex] += sizeC * meshVNumS[j];
+                        sizeVector[areaIndex] += (sizeQ + sizeF) * meshVNumS[j];
+                        if (isVerAdd)
+                            sizeVerAdd[areaIndex] += sizeV * meshVNumS[j];
+                    }
+                    sizeMesh[areaIndex] = jf;
+                    jf = sizeMesh[areaIndex] + sizeScalar[areaIndex] * scalarNum 
+                        + sizeVector[areaIndex] * vectorNum + sizeVerAdd[areaIndex];
+                }
             }
         }
+
         menuItem.GetComponent<MenuItem>().isVerAdd = isVerAdd;
         tMax = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelColor/TextMax").GetComponent<Text>();
         tMin = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelColor/TextMin").GetComponent<Text>();
         arraw = Resources.Load("Prefabs/Arraw") as GameObject;
         tMax1 = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelArraw/TextMax").GetComponent<Text>();
         tMin1 = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelArraw/TextMin").GetComponent<Text>();
+
         panelArraw.SetActive(false);
     }
 
@@ -155,9 +215,70 @@ public class ReadFem : MonoBehaviour {
         //Is Area
         if (menuItem.GetComponent<MenuItem>().isAreaChange)
         {
-            /*
-             * 此处可使用menuItem.GetComponent<MenuItem>().AreaIndex修改区域
-             */
+            long sizeB = Marshal.SizeOf(typeof(bool));
+            long sizeI = sizeof(int);
+            long sizeV = Marshal.SizeOf(typeof(Vector3));
+            long sizeChar = sizeof(char);
+            areaNow = menuItem.GetComponent<MenuItem>().areaIndex;
+            if (areaNow == 0)
+                areaStart = sizeB * 2 + sizeI * 4 + sizeChar * charLength * areaNum;
+            else
+                areaStart = sizeMesh[areaNow - 1] + sizeScalar[areaNow - 1] * scalarNum
+                    + sizeVector[areaNow - 1] * vectorNum + sizeVerAdd[areaNow - 1];
+            long jf = areaStart + sizeV * 2;
+            using (MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(files[0]))
+            {
+                using (MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor())
+                {
+                    for (int j = 0; j < meshNum; ++j)
+                    {
+                        accessor.Read<int>(jf, out meshVNum[j]);
+                        jf += sizeI;
+                        accessor.Read<int>(jf, out meshTNum[j]);
+                        jf += sizeI;
+                        Mesh mesh = pre[j].GetComponent<MeshFilter>().mesh;
+                        mesh.Clear();
+                        if (meshVNum[j] != 0)
+                        {
+                            vertices[j] = new Vector3[meshVNum[j]];
+                            int[] triangles = new int[meshTNum[j]];
+                            colors[j] = new Color[meshVNum[j]];
+                            accessor.ReadArray<Vector3>(jf, vertices[j], 0, meshVNum[j]);
+                            jf += sizeV * meshVNum[j];
+                            accessor.ReadArray<int>(jf, triangles, 0, meshTNum[j]);
+                            jf += sizeI * meshTNum[j];
+                            mesh.vertices = vertices[j];
+                            mesh.triangles = triangles;
+                            mesh.RecalculateNormals();
+                        }
+                    }
+                }
+            }
+            if (menuItem.GetComponent<MenuItem>().isMesh)
+            {
+                for (int j = 0; j < meshNum; j++)
+                    if (meshVNum[j] != 0)
+                        pre[j].GetComponent<MeshRenderer>().materials[0].color = Color.black;
+            }
+            else
+            {
+                for (int j = 0; j < meshNum; j++)
+                    if (meshVNum[j] != 0)
+                        pre[j].GetComponent<MeshRenderer>().materials[0].color = new Color(1, 1, 1, 0);
+            }
+            if (menuItem.GetComponent<MenuItem>().isScalar)
+                ScalarDisplay();
+            if (menuItem.GetComponent<MenuItem>().isVector)
+            {
+                VectorDestroy();
+                VectorCreate();
+                VectorDisplay();
+            }
+            if (menuItem.GetComponent<MenuItem>().isScale)
+            {
+
+                DeformationDisplay();
+            }
         }
 
         //Is Mesh
@@ -215,7 +336,6 @@ public class ReadFem : MonoBehaviour {
         if (menuItem.GetComponent<MenuItem>().isScaleChange)
             DeformationDisplay();
 
-
         //Is Time
         if (menuItem.GetComponent<MenuItem>().timeNow != timeNow)
         {
@@ -225,6 +345,12 @@ public class ReadFem : MonoBehaviour {
                 VectorDisplay();
             if (menuItem.GetComponent<MenuItem>().isScale)
                 DeformationDisplay();
+            if (timeNow == 0)
+            {
+                Debug.Log(Time.time - ttt);////////////////////////////
+                ttt = Time.time;
+
+            }
         }
 
     }
@@ -245,7 +371,7 @@ public class ReadFem : MonoBehaviour {
             using (MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor())
             {
                 //标量绘制
-                jf = sizeMesh + sizeScalar * scalarNow;
+                jf = sizeMesh[areaNow] + sizeScalar[areaNow] * scalarNow;
                 accessor.ReadArray<char>(jf, sca.name, 0, charLength);
                 jf += sizeChar * charLength;
                 accessor.Read<float>(jf, out sca.max);
@@ -318,7 +444,7 @@ public class ReadFem : MonoBehaviour {
             using (MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor())
             {
                 //矢量绘制
-                jf = sizeMesh + sizeScalar * scalarNum + sizeVector * vectorNow;
+                jf = sizeMesh[areaNow] + sizeScalar[areaNow] * scalarNum + sizeVector[areaNow] * vectorNow;
                 accessor.ReadArray<char>(jf, vec.name, 0, charLength);
                 jf += sizeChar * charLength;
                 accessor.Read<float>(jf, out vec.max);
@@ -375,9 +501,7 @@ public class ReadFem : MonoBehaviour {
         {
             using (MemoryMappedViewAccessor accessor = mmf.CreateViewAccessor())
             {
-                jf = sizeMesh + sizeScalar * scalarNum + sizeVector * vectorNum;
-                accessor.Read<bool>(jf, out isVerAdd);
-                jf = sizeMesh + sizeScalar * scalarNum + sizeVector * vectorNum + sizeB;
+                jf = sizeMesh[areaNow] + sizeScalar[areaNow] * scalarNum + sizeVector[areaNow] * vectorNum;
                 for (int j = 0; j < meshNum; j++)
                 {
                     if (meshVNum[j] != 0)

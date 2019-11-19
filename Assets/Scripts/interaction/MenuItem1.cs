@@ -17,6 +17,10 @@ public class MenuItem1 : MonoBehaviour {
     public bool isMeshOnChange = false;
     public bool isMesh = true;
     private Toggle tMesh;
+    //监控BgOn变化与否与具体值
+    public bool isBgOnChange = false;
+    public bool isBg = true;
+    private Toggle tBg;
     //监控time变化与否与具体值
     private bool isPlay = true;
     private Sprite spriteOn, spriteOff;
@@ -34,6 +38,7 @@ public class MenuItem1 : MonoBehaviour {
         MenuOff = Resources.Load<Sprite>("Sprites/menu2");
         dColor = GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelMenu1/DropdownColor").GetComponent<Dropdown>();
         tMesh = (Toggle)GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelMenu1/ToggleMesh").GetComponent<Toggle>();
+        tBg = (Toggle)GameObject.Find("Canvas/PanelGiv/PanelLeft/PanelMenu1/ToggleBg").GetComponent<Toggle>();
         bPlay = GameObject.Find("Canvas/PanelGiv/PanelBottom/ButtonPlay").GetComponent<Button>();
         spriteOn = Resources.Load<Sprite>("Sprites/btnOn");
         spriteOff = Resources.Load<Sprite>("Sprites/btnOff");
@@ -58,6 +63,13 @@ public class MenuItem1 : MonoBehaviour {
         {
             isMeshOnChange = true;
             isMesh = tMesh.isOn;
+        }
+        if (isBg == tBg.isOn)
+            isBgOnChange = false;
+        else
+        {
+            isBgOnChange = true;
+            isBg = tBg.isOn;
         }
         if (timeNow - (timeSum - 1) * sTime.value < 1 && timeNow - (timeSum - 1) * sTime.value > -1)
         {

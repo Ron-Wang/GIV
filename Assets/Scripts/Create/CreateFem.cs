@@ -7,6 +7,9 @@ using System.IO;
 using System;
 using System.Text.RegularExpressions;
 using UnityEngine.UI;
+using GK;
+using SFB;
+using System.Threading.Tasks;
 
 public class CreateFem : MonoBehaviour {
     public string[] inputFiles;
@@ -24,9 +27,19 @@ public class CreateFem : MonoBehaviour {
     int[] scaNum = null,vecNum = null;
     private GameObject panelVar;//变量选择界面
     private Button ButtonOKSca;//变量选择界面的“确定”按钮
+    private GameObject TextSca, TextVec, TextSec;
     private GameObject[] togglesSca, togglesVec;//变量选择界面的标量复选框、矢量复选框
+    float Max = 0, Min = 0;
+    float xMax = 0, xMin = 0,
+        yMax = 0, yMin = 0,
+        zMax = 0, zMin = 0;
+    private GameObject dSection = null;
+    private GameObject[] inpSection = null;
     private GameObject panelGiv;//可视化界面
     private GameObject newObject;
+    private int numS = 0;
+    int position = 0;
+    private int DefIndex = 0;
 
     //只读取.vtk文件
     void Start () {
@@ -37,6 +50,40 @@ public class CreateFem : MonoBehaviour {
         timeNum = inputFiles.Length;
         outputFiles = new string[timeNum];
         CreateGivWithoutDomains();
+    }
+
+    private void Update()
+    {
+        /*
+        if (dSection != null)
+        {
+            if (numS != dSection.transform.GetComponent<Dropdown>().value)
+            {
+                for (int i = 0; i < numS; ++i)
+                {
+                    Destroy(inpSection[i]);
+                }
+                if (numS > 3)
+                    position -= 2;
+                else if (numS > 0)
+                    position -= 1;
+                numS = dSection.transform.GetComponent<Dropdown>().value;
+                if (numS > 0)
+                {
+                    inpSection = new GameObject[numS];
+                    for (int i = 0; i < numS; ++i)
+                    {
+                        if (i % 3 == 0)
+                            ++position;
+                        inpSection[i] = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/SectionInp"));
+                        inpSection[i].transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
+                        inpSection[i].transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale * 2;
+                        inpSection[i].transform.localPosition = new Vector3(-500 + 400 * (i % 3), 350 - 40 * position, 0);
+                    }
+                }
+            }
+        }
+        */
     }
 
     public void CreateGivWithoutDomains()
@@ -66,27 +113,52 @@ public class CreateFem : MonoBehaviour {
 
         panelVar.SetActive(true);
         ButtonOKSca = (Button)GameObject.Find("Canvas/PanelVar/ButtonOK").GetComponent<Button>();
+        TextSca = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/Text"));
+        TextSca.GetComponent<Text>().text = "  Scalars:";
+        TextSca.transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
+        TextSca.transform.localPosition = new Vector3(-500, 350, 0);
+        TextSca.transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale*2;
         togglesSca = new GameObject[scaName.Length];
-        Vector3 pS, pV;
-        pS = GameObject.Find("Canvas/PanelVar/TextSca").GetComponent<Transform>().position;
-        pV = GameObject.Find("Canvas/PanelVar/TextVec").GetComponent<Transform>().position;
         for (int i = 0; i < scaName.Length; ++i)
         {
-            togglesSca[i] = (GameObject)Instantiate(Resources.Load("Prefabs/Toggle"));
+            if (i % 4 == 0)
+                ++position;
+            togglesSca[i] = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/Toggle"));
             togglesSca[i].transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
-            togglesSca[i].transform.localScale = GameObject.Find("Canvas/PanelVar/TextSca").GetComponent<Transform>().localScale;
-            togglesSca[i].transform.position = pS + new Vector3(pS.x * (0.05f + 0.4f * (i % 4)), pS.y * (-0.05f - 0.05f * Mathf.Floor(i / 4f)), 0);
+            togglesSca[i].transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale*2;
+            togglesSca[i].transform.localPosition = new Vector3(-500 + 300 * (i % 4), 350 - 40 * position, 0);
             togglesSca[i].GetComponentInChildren<Text>().text = scaName[i];
         }
+        ++position;
+        TextVec = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/Text"));
+        TextVec.GetComponent<Text>().text = "  Vectors:";
+        TextVec.transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
+        TextVec.transform.localPosition = new Vector3(-500, 350 - 40 * position, 0);
+        TextVec.transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale*2;
         togglesVec = new GameObject[vecName.Length];
         for (int i = 0; i < vecName.Length; ++i)
         {
-            togglesVec[i] = (GameObject)Instantiate(Resources.Load("Prefabs/Toggle"));
+            if (i % 4 == 0)
+                ++position;
+            togglesVec[i] = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/Toggle"));
             togglesVec[i].transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
-            togglesVec[i].transform.localScale = GameObject.Find("Canvas/PanelVar/TextVec").GetComponent<Transform>().localScale;
-            togglesVec[i].transform.position = pV + new Vector3(pS.x * (0.05f + 0.4f * (i % 4)), pS.y * (-0.05f - 0.05f * Mathf.Floor(i / 4f)), 0);
+            togglesVec[i].transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale * 2;
+            togglesVec[i].transform.localPosition = new Vector3(-500 + 300 * (i % 4), 350 - 40 * position, 0);
             togglesVec[i].GetComponentInChildren<Text>().text = vecName[i];
         }
+        ++position;
+        TextSec = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/Text"));
+        TextSec.GetComponent<Text>().text = "  Sections:";
+        TextSec.transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
+        TextSec.transform.localPosition = new Vector3(-500, 350 - 40 * position, 0);
+        TextSec.transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale * 2;
+
+        ++position;
+        dSection = (GameObject)Instantiate(Resources.Load("Prefabs/Widgets/DropdownNum"));
+        dSection.transform.SetParent(GameObject.Find("Canvas/PanelVar").GetComponent<Transform>(), true);
+        dSection.transform.localScale = GameObject.Find("Canvas/PanelVar").GetComponent<Transform>().localScale * 2;
+        dSection.transform.localPosition = new Vector3(-500, 350 - 40 * position, 0);
+
         ButtonOKSca.onClick.AddListener(onClickOKSca);
     }
 
@@ -166,6 +238,23 @@ public class CreateFem : MonoBehaviour {
 
     void onClickOKSca()
     {
+        long sizeB = Marshal.SizeOf(typeof(bool));
+        long sizeI = sizeof(int);
+        long sizeV = Marshal.SizeOf(typeof(Vector3));
+        long sizeC = Marshal.SizeOf(typeof(Color));
+        long sizeQ = Marshal.SizeOf(typeof(Quaternion));
+        long sizeF = sizeof(float);
+        long sizeChar = sizeof(char);
+        int areaNum = 1;
+        areaNum += numS;
+        string[] area = new string[areaNum];
+        long sumSize = sizeB * 2 + sizeI * 4 + sizeChar * charLength * areaNum;
+        area[0] = "Whole";
+
+        int[] a = new int[5] { 1, 2, 4, 8, 16 };
+        int parallelNum = a[dSection.transform.GetComponent<Dropdown>().value];
+
+        //获取用户选择的变量
         for (int i = 0; i < scaName.Length; ++i)
         {
             if (togglesSca[i].GetComponent<Toggle>().isOn)
@@ -180,8 +269,8 @@ public class CreateFem : MonoBehaviour {
         vecNum = vectorsList.ToArray();
         panelVar.SetActive(false);
 
+        //范围、节点Index、三角形Index
         List<string> listVtk;
-        float Max = 0,Min = 0;
         int verNum = 0, triNum = 0, cellNum = 0;
         float[] points = null;
         Vector3[] vertices = null;
@@ -204,17 +293,6 @@ public class CreateFem : MonoBehaviour {
         float[][] vecValue;
         bool isVerAdd = false;
 
-        long sizeB = Marshal.SizeOf(typeof(bool));
-        long sizeI = sizeof(int);
-        long sizeV = Marshal.SizeOf(typeof(Vector3));
-        long sizeC = Marshal.SizeOf(typeof(Color));
-        long sizeQ = Marshal.SizeOf(typeof(Quaternion));
-        long sizeF = sizeof(float);
-        long sizeChar = sizeof(char);
-
-        long sumSize = sizeB + sizeI * 3 + sizeV * 2;
-
-
         int scalarsNum = scaNum.Length,
         vectorsNum = vecNum.Length;
         scalars = new float[scalarsNum][];
@@ -225,12 +303,12 @@ public class CreateFem : MonoBehaviour {
         vectorsMin = new float[vectorsNum];
 
         int line = 0;
-        float xMax = 0, xMin = 0, yMax = 0, yMin = 0, zMax = 0, zMin = 0;
         listVtk = LoadTextFile(inputFiles[0]);
         for (; line < listVtk.Count; ++line)
         {
             //边界最大最小值
-            if (Regex.IsMatch(listVtk[line], @"^avtOriginalBounds"))
+            //if (Regex.IsMatch(listVtk[line], @"^avtOriginalBounds"))
+            if(listVtk[line].Contains("avtOriginalBounds "))
             {
                 string[] lineToArray = listVtk[line + 1].Split(' ');
                 xMin = float.Parse(lineToArray[0]);
@@ -241,7 +319,8 @@ public class CreateFem : MonoBehaviour {
                 zMax = float.Parse(lineToArray[5]);
             }
             //节点
-            if (Regex.IsMatch(listVtk[line], @"^POINTS"))
+            //if (Regex.IsMatch(listVtk[line], @"^POINTS"))
+            if (listVtk[line].Contains("POINTS "))
             {
                 string[] lineToArray = listVtk[line].Split(' ');
                 verNum = int.Parse(lineToArray[1]);
@@ -261,7 +340,8 @@ public class CreateFem : MonoBehaviour {
                 }
             }
             //单元
-            if (Regex.IsMatch(listVtk[line], @"^CELLS"))
+            //if (Regex.IsMatch(listVtk[line], @"^CELLS"))
+            if (listVtk[line].Contains("CELLS "))
             {
                 string[] lineToArray = listVtk[line].Split(' ');
                 cellNum = int.Parse(lineToArray[1]);
@@ -301,41 +381,47 @@ public class CreateFem : MonoBehaviour {
         vecInfo = new info[vectorsNum];
         vecQua = new Quaternion[vectorsNum][];
         vecValue = new float[vectorsNum][];
-
-        if (xMax - xMin > yMax - yMin)
-        {
-            if (xMax - xMin > zMax - zMin)
-            {
-                Max = xMax;
-                Min = xMin;
-            }
-            else
-            {
-                Max = zMax;
-                Min = zMin;
-            }
-        }
-        else
-        {
-            if (yMax - yMin > zMax - zMin)
-            {
-                Max = yMax;
-                Min = yMin;
-            }
-            else
-            {
-                Max = zMax;
-                Min = zMin;
-            }
-        }
+        Max = xMax - xMin > yMax - yMin ? (xMax - xMin > zMax - zMin ? xMax : zMax) : (yMax - yMin > zMax - zMin ? yMax : zMax);
+        Min = xMax - xMin > yMax - yMin ? (xMax - xMin > zMax - zMin ? xMin : zMin) : (yMax - yMin > zMax - zMin ? yMin : zMin);
 
         //节点归一化
-        for (int verIndex = 0; verIndex < verNum; ++verIndex)
-            vertices[verIndex] = new Vector3(10 * (points[3 * verIndex] - xMin) / (Max - Min) - 5,
-                    5 - 10 * (points[3 * verIndex + 1] - yMin) / (Max - Min),
-                    10 * (points[3 * verIndex + 2] - zMin) / (Max - Min) - 5);
-        sumSize += sizeI * 2 + sizeV * verNum + sizeI * triNum * 3;
+        float xx = (xMax + xMin) / 2, yy = (yMax + yMin) / 2, zz = (zMax + zMin) / 2;
+
+        Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+        //for (int verIndex = 0; verIndex < verNum; ++verIndex)
+        {
+            vertices[verIndex] = new Vector3(10 * (points[3 * verIndex] - xx) / (Max - Min),
+                    -10 * (points[3 * verIndex + 1] - yy) / (Max - Min),
+                    10 * (points[3 * verIndex + 2] - zz) / (Max - Min));
+        });
+        sumSize += sizeI * 2 + sizeV * 2 + sizeV * verNum + sizeI * triNum * 3;
         outputFiles[0] = outputFile.Replace(".giv", "") + "0.giv";//输出文件路径
+
+        Section[] section = new Section[numS];
+        string[] Option = new string[] { "X = ", "Y = ", "Z = " };
+        for (int i = 0; i < numS; ++i)
+        {
+            int sectionOption = inpSection[i].GetComponentInChildren<Dropdown>().value;
+            float sectionValue = float.Parse(inpSection[i].GetComponentInChildren<InputField>().text);
+            switch (sectionOption)
+            {
+                case 0:
+                    section[i] = new Section(points, triangles, sectionOption, xMin + (xMax - xMin) * sectionValue, maxVertice, minVertice);
+                    break;
+                case 1:
+                    section[i] = new Section(points, triangles, sectionOption, yMin + (yMax - yMin) * sectionValue, maxVertice, minVertice);
+                    break;
+                case 2:
+                    section[i] = new Section(points, triangles, sectionOption, zMin + (zMax - zMin) * sectionValue, maxVertice, minVertice);
+                    break;
+            }
+            if (section[i].nodeNum > 0)
+                sumSize += sizeI * 2 + sizeV * 2 + sizeV * section[i].nodeNum + sizeI * section[i].triangles.Length;
+            else
+                sumSize += sizeI * 2 + sizeV * 2;
+            area[1 + i] = Option[sectionOption] + sectionValue;
+
+        }
 
         for (int time = 0; time < timeNum; ++time)
         {
@@ -345,29 +431,25 @@ public class CreateFem : MonoBehaviour {
             for (; line < listVtk.Count; ++line)
             {
                 //标量
-                if (scaIndex < scalarsNum && Regex.IsMatch(listVtk[line], scaName[scaNum[scaIndex]] + " "))
+                //if (scaIndex < scalarsNum && Regex.IsMatch(listVtk[line], scaName[scaNum[scaIndex]] + " "))
+                if (scaIndex < scalarsNum && listVtk[line].Contains(scaName[scaNum[scaIndex]] + " "))
                 {
                     ++line;
                     if (listVtk[line].Split(' ')[1] == "default")
                         ++line;
                     scalars[scaIndex] = new float[verNum];
                     int scalarIndex = 0;
+                    scalarsMax[scaIndex] = float.MinValue;
+                    scalarsMin[scaIndex] = float.MaxValue;
+
                     for (; line < listVtk.Count; ++line)
                     {
                         string[] lineToArray = listVtk[line].Split(' ');
                         for (int i = 0; i < lineToArray.Length - 1; ++i)
                         {
                             scalars[scaIndex][scalarIndex] = float.Parse(lineToArray[i]);
-                            if (scalarIndex == 0)
-                            {
-                                scalarsMax[scaIndex] = scalars[scaIndex][scalarIndex];
-                                scalarsMin[scaIndex] = scalarsMax[scaIndex];
-                            }
-                            else
-                            {
-                                scalarsMax[scaIndex] = Mathf.Max(scalarsMax[scaIndex], scalars[scaIndex][scalarIndex]);
-                                scalarsMin[scaIndex] = Mathf.Min(scalarsMin[scaIndex], scalars[scaIndex][scalarIndex]);
-                            }
+                            scalarsMax[scaIndex] = Mathf.Max(scalarsMax[scaIndex], scalars[scaIndex][scalarIndex]);
+                            scalarsMin[scaIndex] = Mathf.Min(scalarsMin[scaIndex], scalars[scaIndex][scalarIndex]);
                             ++scalarIndex;
                         }
                         if (scalarIndex == verNum)
@@ -376,27 +458,23 @@ public class CreateFem : MonoBehaviour {
                     ++scaIndex;
                 }
                 //矢量
-                else if (vecIndex < vectorsNum && Regex.IsMatch(listVtk[line], vecName[vecNum[vecIndex]] + " "))
+                //else if (vecIndex < vectorsNum && Regex.IsMatch(listVtk[line], vecName[vecNum[vecIndex]] + " "))
+                else if (vecIndex < vectorsNum && listVtk[line].Contains(vecName[vecNum[vecIndex]] + " "))
                 {
                     ++line;
                     if (listVtk[line].Split(' ')[1] == "default")
                         ++line;
                     vectors[vecIndex] = new float[3 * verNum];
                     int vectorIndex = 0;
+                    vectorsMax[vecIndex] = float.MinValue;
+                    vectorsMin[vecIndex] = float.MaxValue;
                     for (; line < listVtk.Count; ++line)
                     {
                         string[] lineToArray = listVtk[line].Split(' ');
                         for (int i = 0; i < lineToArray.Length - 1; ++i)
                         {
                             vectors[vecIndex][vectorIndex] = float.Parse(lineToArray[i]);
-                            if (vectorIndex == 2)
-                            {
-                                vectorsMax[vecIndex] = Mathf.Sqrt(vectors[vecIndex][vectorIndex] * vectors[vecIndex][vectorIndex]
-                                    + vectors[vecIndex][vectorIndex - 1] * vectors[vecIndex][vectorIndex - 1]
-                                    + vectors[vecIndex][vectorIndex - 2] * vectors[vecIndex][vectorIndex - 2]);
-                                vectorsMin[vecIndex] = scalarsMax[scaIndex];
-                            }
-                            else if (vectorIndex % 3 == 2)
+                            if (vectorIndex % 3 == 2)
                             {
                                 vectorsMax[vecIndex] = Mathf.Max(vectorsMax[vecIndex],
                                     Mathf.Sqrt(vectors[vecIndex][vectorIndex] * vectors[vecIndex][vectorIndex]
@@ -431,16 +509,27 @@ public class CreateFem : MonoBehaviour {
                 scaColor[scaIndex1] = new Color[verNum];
                 if (scalarsMax[scaIndex1] == scalarsMin[scaIndex1])
                 {
-                    for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+                    //for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    {
                         scaColor[scaIndex1][verIndex] = Color.blue;
+                    });
                 }
                 else
                 {
-                    for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+                    //for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    {
                         scaColor[scaIndex1][verIndex] = FourColor((scalars[scaIndex1][verIndex] - scalarsMin[scaIndex1])
                             / (scalarsMax[scaIndex1] - scalarsMin[scaIndex1]));
+                    });
                 }
-                sumSize += sizeChar * charLength + sizeF * 2 + sizeC * verNum;
+                if (time == 0)
+                {
+                    sumSize += sizeChar * charLength + sizeF * 2 + sizeC * verNum;
+                    for (int ii = 0; ii < numS; ++ii)
+                        sumSize += sizeChar * charLength + sizeF * 2 + sizeC * section[ii].nodeNum;
+                }
             }
             //矢量信息结构体初始化、方向大小归一化
             for (int vecIndex1 = 0; vecIndex1 < vectorsNum; ++vecIndex1)
@@ -460,17 +549,19 @@ public class CreateFem : MonoBehaviour {
 
                 if (vectorsMax[vecIndex1] == vectorsMin[vecIndex1])
                 {
-                    for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+                    //for (int verIndex = 0; verIndex < verNum; ++verIndex)
                     {
                         q.SetFromToRotation(v, new Vector3(vectors[vecIndex1][3 * verIndex],
                             vectors[vecIndex1][3 * verIndex + 1], vectors[vecIndex1][3 * verIndex + 2]));
                         vecQua[vecIndex1][verIndex] = q;
                         vecValue[vecIndex1][verIndex] = 0.1f;
-                    }
+                    });
                 }
                 else
                 {
-                    for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+                    //for (int verIndex = 0; verIndex < verNum; ++verIndex)
                     {
                         q.SetFromToRotation(v, new Vector3(vectors[vecIndex1][3 * verIndex],
                             vectors[vecIndex1][3 * verIndex + 1], vectors[vecIndex1][3 * verIndex + 2]));
@@ -480,26 +571,38 @@ public class CreateFem : MonoBehaviour {
                                     + vectors[vecIndex1][3 * verIndex + 1] * vectors[vecIndex1][3 * verIndex + 1]
                                     + vectors[vecIndex1][3 * verIndex + 2] * vectors[vecIndex1][3 * verIndex + 2])
                             - vectorsMin[vecIndex1]) / (vectorsMax[vecIndex1] - vectorsMin[vecIndex1]);
-                    }
+                    });
                 }
                 //附加位移
                 if (vecName[vecNum[vecIndex1]] == "Displacement")
                 {
                     isVerAdd = true;
+                    DefIndex = vecIndex1;
                     verAdd = new Vector3[verNum];
-                    for (int verIndex = 0; verIndex < verNum; ++verIndex)
+                    Parallel.For(0, verNum, new ParallelOptions { MaxDegreeOfParallelism = parallelNum }, (verIndex) =>
+                    //for (int verIndex = 0; verIndex < verNum; ++verIndex)
                     {
-                        verAdd[verIndex] = new Vector3(1000 * vectors[vecIndex1][3 * verIndex]/ (Max - Min),
+                        verAdd[verIndex] = new Vector3(1000 * vectors[vecIndex1][3 * verIndex] / (Max - Min),
                             1000 * vectors[vecIndex1][3 * verIndex + 1] / (Max - Min),
                             1000 * vectors[vecIndex1][3 * verIndex + 2] / (Max - Min));
+                    });
+                    if (time == 0)
+                    {
+                        sumSize += sizeV * verNum;
+                        for (int ii = 0; ii < numS; ++ii)
+                            sumSize += sizeV * section[ii].nodeNum;
                     }
-                    sumSize += sizeV * verNum;
                 }
-                sumSize += sizeChar * charLength + sizeF * 2 + (sizeQ + sizeF) * verNum;
+                if (time == 0)
+                {
+                    sumSize += sizeChar * charLength + sizeF * 2 + (sizeQ + sizeF) * verNum;
+                    for (int ii = 0; ii < numS; ++ii)
+                        sumSize += sizeChar * charLength + sizeF * 2 + (sizeQ + sizeF) * section[ii].nodeNum;
+                }
             }
-            sumSize += sizeB;
-            outputFiles[time] = outputFile.Replace(".giv", "") + time + ".giv";
 
+
+            outputFiles[time] = outputFile.Replace(".giv", "") + time + ".giv";
             long jf = 0;
             CreateFileWithSize(outputFiles[time], sumSize);
             using (MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(outputFiles[time]))
@@ -514,6 +617,26 @@ public class CreateFem : MonoBehaviour {
                     jf += sizeI;
                     accessor.Write<int>(jf, ref vectorsNum);
                     jf += sizeI;
+                    accessor.Write<bool>(jf, ref isVerAdd);
+                    jf += sizeB;
+                    accessor.Write<int>(jf, ref areaNum);
+                    jf += sizeI;
+                    for (int areaIndex = 0; areaIndex < areaNum; ++areaIndex)
+                    {
+                        char[] areaName = new char[charLength];
+                        for (int j = 0; j < charLength; j++)
+                        {
+                            if (j < area[areaIndex].Length)
+                            {
+                                areaName[j] = area[areaIndex][j];
+                            }
+                            else
+                                areaName[j] = ' ';
+                        }
+                        accessor.WriteArray<char>(jf, areaName, 0, charLength);
+                        jf += sizeChar * charLength;
+                    }
+                    //Whole 
                     accessor.Write<Vector3>(jf, ref maxVertice);
                     jf += sizeV;
                     accessor.Write<Vector3>(jf, ref minVertice);
@@ -553,18 +676,72 @@ public class CreateFem : MonoBehaviour {
                     }
                     if (isVerAdd)
                     {
-                        accessor.Write<bool>(jf, ref isVerAdd);
-                        jf += sizeB;
                         accessor.WriteArray<Vector3>(jf, verAdd, 0, verNum);
+                        jf += sizeV * verNum;
                     }
-                    else
-                        accessor.Write<bool>(jf, ref isVerAdd);
+                    for (int areaIndex = 0; areaIndex < numS; ++areaIndex)
+                    {
+                        //Section
+                        accessor.Write<Vector3>(jf, ref maxVertice);
+                        jf += sizeV;
+                        accessor.Write<Vector3>(jf, ref minVertice);
+                        jf += sizeV;
+                        int SectionVerNum = section[areaIndex].nodeNum;
+                        accessor.Write<int>(jf, ref SectionVerNum);
+                        jf += sizeI;
+                        int SectionTriVerNum = section[areaIndex].triangles.Length;
+                        accessor.Write<int>(jf, ref SectionTriVerNum);
+                        jf += sizeI;
+                        accessor.WriteArray<Vector3>(jf, section[areaIndex].vertices, 0, SectionVerNum);
+                        jf += sizeV * SectionVerNum;
+                        accessor.WriteArray<int>(jf, section[areaIndex].triangles, 0, SectionTriVerNum);
+                        jf += sizeI * SectionTriVerNum;
+                        for (int scaIndex1 = 0; scaIndex1 < scalarsNum; ++scaIndex1)
+                        {
+                            Color[] SectionSca = null;
+                            float SectionSMax = 0, SectionSMin = 0;
+                            section[areaIndex].Scalars(scalars[scaIndex1], ref SectionSca, ref SectionSMax, ref SectionSMin);
+                            accessor.WriteArray<char>(jf, scaInfo[scaIndex1].name, 0, charLength);
+                            jf += sizeChar * charLength;
+                            accessor.Write<float>(jf, ref SectionSMax);
+                            jf += sizeF;
+                            accessor.Write<float>(jf, ref SectionSMin);
+                            jf += sizeF;
+                            accessor.WriteArray<Color>(jf, SectionSca, 0, SectionVerNum);
+                            jf += sizeC * SectionVerNum;
+                        }
+                        for (int vecIndex1 = 0; vecIndex1 < vectorsNum; ++vecIndex1)
+                        {
+                            Quaternion[] SectionQ = null;
+                            float[] SectionValue = null;
+                            float SectionVMax = 0, SectionVMin = 0;
+                            section[areaIndex].VectorsQ(vectors[vecIndex1],ref SectionQ,ref SectionValue,ref SectionVMax,ref SectionVMin);
+                            accessor.WriteArray<char>(jf, vecInfo[vecIndex1].name, 0, charLength);
+                            jf += sizeChar * charLength;
+                            accessor.Write<float>(jf, ref SectionVMax);
+                            jf += sizeF;
+                            accessor.Write<float>(jf, ref SectionVMin);
+                            jf += sizeF;
+                            accessor.WriteArray<Quaternion>(jf, SectionQ, 0, SectionVerNum);
+                            jf += sizeQ * SectionVerNum;
+                            accessor.WriteArray<float>(jf, SectionValue, 0, SectionVerNum);
+                            jf += sizeF * SectionVerNum;
+                        }
+                        if (isVerAdd)
+                        {
+                            Vector3[] SectionDef = null;
+                            section[areaIndex].Deformation(vectors[DefIndex],ref SectionDef);
+                            accessor.WriteArray<Vector3>(jf, SectionDef, 0, SectionVerNum);
+                            jf += sizeV * SectionVerNum;
+                        }
+                    }
                 }
             }
         }
         panelGiv.SetActive(true);//可视化界面显示
-        newObject = (GameObject)Instantiate(Resources.Load("Prefabs/ReadGiv"));
+        newObject = (GameObject)Instantiate(Resources.Load("Prefabs/Scripts/ReadGiv"));
         newObject.GetComponent<ReadGiv>().files = outputFiles;
         newObject.transform.parent = GetComponent<Transform>();
     }
+
 }

@@ -39,6 +39,7 @@ public class MoveScaleRorate : MonoBehaviour {
                 if (distance < 50)
                     btnRorate.transform.Translate((mouse1 - mouse0));
                 Objects.transform.Rotate(new Vector3((btnTran1 - btnTran0).y, -(btnTran1 - btnTran0).x) * speedRorate, Space.World);
+                //Objects.transform.RotateAround(new Vector3(-5, 5, -5), new Vector3((btnTran1 - btnTran0).y, -(btnTran1 - btnTran0).x), speedRorate*100);
                 mouse0 = mouse1;
             }
             if (IsRestore)

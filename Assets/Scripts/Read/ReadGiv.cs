@@ -22,31 +22,15 @@ public class ReadGiv : MonoBehaviour {
         }
         if (changeMesh)
         {
-            readGiv = (GameObject)Instantiate(Resources.Load("Prefabs/ReadContour"));
+            readGiv = (GameObject)Instantiate(Resources.Load("Prefabs/Scripts/ReadContour"));
             readGiv.GetComponent<ReadContour>().files = files;
         }
         else
         {
-            readGiv = (GameObject)Instantiate(Resources.Load("Prefabs/ReadFem"));
+            readGiv = (GameObject)Instantiate(Resources.Load("Prefabs/Scripts/ReadFem"));
             readGiv.GetComponent<ReadFem>().files = files;
         }
         readGiv.transform.parent = GetComponent<Transform>();
-
-        /*
-        if (File.Exists(file))
-        {
-            readTriangle = (GameObject)Instantiate(Resources.Load("Prefabs/ReadTBackground"));
-            readTriangle.GetComponent<ReadTBackground>().file = file;
-            readTriangle.transform.parent = GetComponent<Transform>();
-        }
-        file = fileDir + @"\line.givb";
-        if (File.Exists(file))
-        {
-            readLine = (GameObject)Instantiate(Resources.Load("Prefabs/ReadLBackground"));
-            readLine.GetComponent<ReadLBackground>().file = file;
-            readLine.transform.parent = GetComponent<Transform>();
-        }
-        */
 
     }
 }
