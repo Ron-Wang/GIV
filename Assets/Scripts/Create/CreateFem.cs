@@ -474,7 +474,18 @@ public class CreateFem : MonoBehaviour {
                         for (int i = 0; i < lineToArray.Length - 1; ++i)
                         {
                             vectors[vecIndex][vectorIndex] = float.Parse(lineToArray[i]);
+<<<<<<< HEAD
                             if (vectorIndex % 3 == 2)
+=======
+                            if (vectorIndex == 2)
+                            {
+                                vectorsMax[vecIndex] = Mathf.Sqrt(vectors[vecIndex][vectorIndex] * vectors[vecIndex][vectorIndex]
+                                    + vectors[vecIndex][vectorIndex - 1] * vectors[vecIndex][vectorIndex - 1]
+                                    + vectors[vecIndex][vectorIndex - 2] * vectors[vecIndex][vectorIndex - 2]);
+                                vectorsMin[vecIndex] = vectorsMax[vecIndex];
+                            }
+                            else if (vectorIndex % 3 == 2)
+>>>>>>> 8e5cf4d9027b17941e2448661f3300bd87732f89
                             {
                                 vectorsMax[vecIndex] = Mathf.Max(vectorsMax[vecIndex],
                                     Mathf.Sqrt(vectors[vecIndex][vectorIndex] * vectors[vecIndex][vectorIndex]
