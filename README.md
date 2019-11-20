@@ -1,6 +1,7 @@
-# GIV
+# GIV(Geotechnical Interactive Visualization)
 
 ## Introduction
+
 
 ## Design
 
