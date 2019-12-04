@@ -1,10 +1,7 @@
-# GIV(Geotechnical Interactive Visualization)
+# GIV 
 
-## Introduction
+GIV is a visualization software based on Unity3D, for post-processing of geotechnical engineering simulation.
 
 
-## Design
-
-## Usage Instruction
 
 
