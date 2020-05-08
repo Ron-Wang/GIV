@@ -1,3 +1,4 @@
-# videos of GIV
-Link: https://pan.baidu.com/s/1jnW8Y4ZqKnhB-Xtp4OxXjA </br>
-Extracted code: 3v9p </br>
+# videos of GIV Application
+</br>
+YouTube Link: https://www.youtube.com/watch?v=B2_gmrqkGMY </br>
+</br>
